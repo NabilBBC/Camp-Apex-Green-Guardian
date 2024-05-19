@@ -49,4 +49,39 @@ private class TestGardeningManagerTask {
         Assert.areNotEqual(manager.Id, jardins.get(0).CAMPX__Manager__c);
         Assert.areEqual(0, existingTasks.size());
     }
+
+    @isTest
+    static void createGardenWithoutManagerThenUpdateManager() {
+        User manager = [SELECT id FROM User where FirstName = 'Nabil'];
+        List<CAMPX__Garden__c> jardins = new List<CAMPX__Garden__c>();
+        List<Task> toDos = new List<Task>();
+
+        CAMPX__Garden__c edenGarden = new CAMPX__Garden__c();
+        edenGarden.Name = 'Jardin d\'Eden 3';
+        jardins.add(edenGarden);
+
+        insert jardins;
+        jardins = [ SELECT  id,
+                            CAMPX__Manager__c
+                    FROM    CAMPX__Garden__c WHERE id = :edenGarden.id];
+        List<Task> existingTasks = [    SELECT id
+                                        FROM Task
+                                        WHERE whatid = :edenGarden.id];
+
+        Assert.areNotEqual(manager.Id, jardins.get(0).CAMPX__Manager__c);
+        Assert.areEqual(0, existingTasks.size());
+        
+        edenGarden.CAMPX__Manager__c = manager.id;
+        update edenGarden;
+        jardins = [ SELECT  id, CAMPX__Manager__c
+                    FROM CAMPX__Garden__c
+                    WHERE id = :edenGarden.id];
+
+        existingTasks = [   SELECT id
+                            FROM Task
+                            WHERE whatid = :edenGarden.id];
+
+        Assert.areEqual(manager.Id, jardins.get(0).CAMPX__Manager__c);
+        Assert.areEqual(1, existingTasks.size());
+    }
 }
